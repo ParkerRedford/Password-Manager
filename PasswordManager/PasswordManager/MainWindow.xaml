@@ -107,7 +107,7 @@
                     x:Name="specialsMenuItem"
                     Header="_Special Characters"
                     ToolTip="Include/disclude special characters for password generate function" />
-            <TextBox Width="200" TextChanged="searchText_Changed" />
+            
         </Menu>
         <DockPanel Grid.ColumnSpan="2">
             <Label Content="Password Manager" Foreground="White" />
@@ -152,10 +152,9 @@
                     IsReadOnly="False" />
             </DataGrid.Columns>
         </DataGrid>
-        <Button
+        <DockPanel Grid.Row="3">
+            <Button
             x:Name="button"
-            Grid.Row="3"
-            Grid.Column="0"
             HorizontalAlignment="Left"
             Background="DarkRed"
             Click="Delete_Click"
@@ -164,6 +163,9 @@
             MouseLeave="Delete_Out"
             PreviewMouseDown="Delete_Down"
             ToolTip="Deletes lowest Id if multiple selected" />
+            <TextBox Width="200" Grid.Row="3" Height="24" TextChanged="searchText_Changed" />
+        </DockPanel>
+        
         <StackPanel
             Grid.Row="3"
             Grid.Column="2"
