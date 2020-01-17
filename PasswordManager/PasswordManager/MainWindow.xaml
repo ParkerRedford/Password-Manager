@@ -107,7 +107,7 @@
                     x:Name="specialsMenuItem"
                     Header="_Special Characters"
                     ToolTip="Include/disclude special characters for password generate function" />
-            <TextBox Width="200" />
+            <TextBox Width="200" TextChanged="searchText_Changed" />
         </Menu>
         <DockPanel Grid.ColumnSpan="2">
             <Label Content="Password Manager" Foreground="White" />

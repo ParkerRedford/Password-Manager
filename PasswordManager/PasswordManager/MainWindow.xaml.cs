@@ -262,5 +262,15 @@ namespace PasswordGeneratorCore
                 db.Passwords.Update(a);
             }
         }
+        private void searchText_Changed(object sender, TextChangedEventArgs e)
+        {
+            TextBox search = sender as TextBox;
+            using (var db = new AccountsDbContext())
+            {
+                List<AccountModel> accounts = db.Passwords.Where(w => w.Website.ToLower().Contains(search.Text.ToLower())).ToList();
+
+                data.ItemsSource = accounts;
+            }
+        }
     }
 }
