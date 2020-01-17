@@ -267,9 +267,7 @@ namespace PasswordGeneratorCore
             TextBox search = sender as TextBox;
             using (var db = new AccountsDbContext())
             {
-                List<AccountModel> accounts = db.Passwords.Where(w => w.Website.ToLower().Contains(search.Text.ToLower())).ToList();
-
-                data.ItemsSource = accounts;
+                data.ItemsSource = db.Passwords.Where(w => w.Website.ToLower().Contains(search.Text.ToLower())).ToList();
             }
         }
     }
