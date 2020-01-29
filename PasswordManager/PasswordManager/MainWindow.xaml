@@ -9,23 +9,21 @@
     Width="800"
     Height="450"
     mc:Ignorable="d"
-    Opacity="0.95"
-    AllowsTransparency="True"
-    WindowStyle="None">
-    <Grid MouseDown="w_MouseDown">
+    Opacity="0.95">
+    <Grid Background="#32363d" MouseDown="w_MouseDown">
         <Grid.Resources>
             <Style TargetType="Button">
 
                 <Setter Property="Margin" Value="5" />
                 <Setter Property="Width" Value="100" />
-                <Setter Property="Background" Value="Gray" />
+                <Setter Property="Background" Value="#3C394A" />
                 <Setter Property="Foreground" Value="White" />
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="#555555" />
+                        <Setter Property="Background" Value="#4A3C39" />
                     </Trigger>
                     <Trigger Property="IsPressed" Value="True">
-                        <Setter Property="Background" Value="#999999" />
+                        <Setter Property="Background" Value="#47394A" />
                     </Trigger>
                 </Style.Triggers>
             </Style>
@@ -42,7 +40,7 @@
                 </Style.Triggers>
             </Style>
             <Style TargetType="MenuItem">
-                <Setter Property="Background" Value="#111111" />
+                <Setter Property="Background" Value="#32363d" />
                 <Setter Property="Foreground" Value="DarkGray" />
 
             </Style>
@@ -55,13 +53,13 @@
                 </Style.Triggers>
             </Style>
             <Style TargetType="DataGrid">
-                <Setter Property="Background" Value="#111111" />
+                <Setter Property="Background" Value="#32363d" />
                 <Setter Property="Foreground" Value="Gray" />
                 <Setter Property="Padding" Value="10" />
             </Style>
             <Style TargetType="DataGridColumnHeader">
-                <Setter Property="Background" Value="DarkGray" />
-                <Setter Property="Foreground" Value="Black" />
+                <Setter Property="Background" Value="#414354" />
+                <Setter Property="Foreground" Value="White" />
                 <Setter Property="Padding" Value="5" />
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
@@ -70,7 +68,6 @@
                 </Style.Triggers>
             </Style>
             <Style TargetType="DataGridCell">
-                <Setter Property="Background" Value="#111111" />
                 <Setter Property="Foreground" Value="LightGray" />
                 <Setter Property="Padding" Value="10" />
                 <Style.Triggers>
@@ -80,7 +77,7 @@
                 </Style.Triggers>
             </Style>
             <Style TargetType="DataGridRow">
-                <Setter Property="Background" Value="#272727" />
+
                 <Setter Property="Foreground" Value="Gray" />
             </Style>
         </Grid.Resources>
@@ -94,8 +91,8 @@
             <RowDefinition Height="1*" />
             <RowDefinition Height="0.1*" />
         </Grid.RowDefinitions>
-        <Menu Grid.Row="1" Grid.ColumnSpan="2">
-            <MenuItem Header="_Password Length" ToolTip="Password length for the generate function">
+        <Menu Background="#32363d" Grid.Row="1" Grid.ColumnSpan="2">
+            <MenuItem Header="_Password Length" ToolTip="Password length for the generate function" Background="#4432363D">
                 <TextBox
                     Text="20"
                         x:Name="passLenTxt"
@@ -107,9 +104,9 @@
                     x:Name="specialsMenuItem"
                     Header="_Special Characters"
                     ToolTip="Include/disclude special characters for password generate function" />
-            
+
         </Menu>
-        <DockPanel Grid.ColumnSpan="2">
+        <!--<DockPanel Grid.ColumnSpan="2">
             <Label Content="Password Manager" Foreground="White" />
             <DockPanel HorizontalAlignment="Right">
                 <DockPanel.Resources>
@@ -122,14 +119,16 @@
                 <Button Content="-" Click="Minimize_Click" />
                 <Button Content="X" Click="Close_Click"/>
             </DockPanel>
-        </DockPanel>
+        </DockPanel>-->
         <DataGrid
             x:Name="data"
-            Grid.Row="2"
             Grid.ColumnSpan="2"
             AutoGenerateColumns="False"
             CanUserResizeRows="False"
-            HorizontalAlignment="Right">
+            
+            AlternationCount="2"
+            AlternatingRowBackground="#414D54"
+            HorizontalAlignment="Left" Margin="0,0,0,35" Grid.RowSpan="2" Grid.Row="2" Foreground="#FF990000">
             <DataGrid.Columns>
                 <DataGridTextColumn
                     Width="0.1*"
@@ -151,21 +150,43 @@
                     Header="Password"
                     IsReadOnly="False" />
             </DataGrid.Columns>
+            <DataGrid.Resources>
+                <Style TargetType="DataGridRow">
+                    <Style.Triggers>
+                        <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                            <Setter Property="Background" Value="#39484A" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.Resources>
         </DataGrid>
         <DockPanel Grid.Row="3">
             <Button
             x:Name="button"
             HorizontalAlignment="Left"
-            Background="DarkRed"
+            Background="#3D3236"
             Click="Delete_Click"
             Content="Delete"
             MouseEnter="Delete_Over"
             MouseLeave="Delete_Out"
             PreviewMouseDown="Delete_Down"
-            ToolTip="Deletes lowest Id if multiple selected" />
+            ToolTip="Deletes lowest Id if multiple selected">
+                <!--<Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="#3D3236"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="False">
+                                <Setter Property="Background" Value="#3D3236" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#4A3C39" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>-->
+            </Button>
             <TextBox Width="200" Grid.Row="3" Height="24" TextChanged="searchText_Changed" />
         </DockPanel>
-        
         <StackPanel
             Grid.Row="3"
             Grid.Column="2"
@@ -189,7 +210,7 @@
                 PreviewMouseDown="Save_Down"
                 Content="Save"
                 ToolTip="Saves lowest Id" 
-                Background="DarkBlue"
+                Background="#363d32"
                 Foreground="White"/>
         </StackPanel>
     </Grid>

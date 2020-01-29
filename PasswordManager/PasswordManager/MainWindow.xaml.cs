@@ -35,6 +35,8 @@ namespace PasswordGeneratorCore
         //Upper case
         List<char> u = new List<char> { };
 
+        List<CheckBox> chList = new List<CheckBox> { };
+
         //List<char> s = new List<char> { };
         public MainWindow()
         {
@@ -165,17 +167,17 @@ namespace PasswordGeneratorCore
         private void Delete_Down(object sender, MouseButtonEventArgs e)
         {
             Button b = sender as Button;
-            b.Background = new SolidColorBrush(Color.FromArgb(255, 153, 153, 153));
+            //b.Background = new SolidColorBrush(Color.FromArgb(71, 57, 74, 29));
         }
         private void Delete_Over(object sender, MouseEventArgs e)
         {
             Button b = sender as Button;
-            b.Background = new SolidColorBrush(Color.FromArgb(255, 85, 85, 85));
+            //b.Background = new SolidColorBrush(Color.FromArgb(74, 60, 57, 29));
         }
         private void Delete_Out(object sender, MouseEventArgs e)
         {
             Button b = sender as Button;
-            b.Background = new SolidColorBrush(Color.FromArgb(255, 255, 23, 23));
+            //b.Background = new SolidColorBrush(Color.FromArgb(61, 50, 54, 24));
         }
         private bool IsNumber(string Text)
         {
@@ -270,5 +272,6 @@ namespace PasswordGeneratorCore
                 data.ItemsSource = db.Passwords.Where(w => w.Website.ToLower().Contains(search.Text.ToLower())).ToList();
             }
         }
+
     }
 }
