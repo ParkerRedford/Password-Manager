@@ -2,10 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Data;
+using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -21,6 +25,7 @@ using System.Windows.Shapes;
 
 namespace PasswordGeneratorCore
 {
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -35,12 +40,17 @@ namespace PasswordGeneratorCore
         //Upper case
         List<char> u = new List<char> { };
 
-        List<CheckBox> chList = new List<CheckBox> { };
+        List<ListViewItem> cbList = new List<ListViewItem> { };
 
-        //List<char> s = new List<char> { };
-        public MainWindow()
+        int rowIndex;
+        int indexDb;
+        string notes;
+        string website;
+        string password;
+ 
+        //Generate password
+        String generatePassword()
         {
-            InitializeComponent();
             //Add numbers to list
             for (char i = '0'; i <= '9'; i++)
             {
@@ -60,12 +70,42 @@ namespace PasswordGeneratorCore
                 chars.Add(i);
             }
 
-            //Special characters list
-            var specials = new Dictionary<char, string>
+            StringBuilder p = new StringBuilder();
+
+            var rand = new Random();
+
+            for (int i = 0; i <= int.Parse(passLenTxt.Text) - 1; i++)
             {
-                {' ', "White space"},
+                int index = rand.Next(chars.Count);
+                p.Append(chars[index]);
+            }
+
+            //Recurse generatePassword() until password is strong/valid
+            Regex r = new Regex(@"(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[ !\""#$%&'()*+,\-./:;<=>?@\[\]^_`{|}~])");
+            if (r.IsMatch(p.ToString()))
+                return p.ToString();
+            else
+            {
+                return generatePassword();
+            }
+        }
+        public class SpecialsModel
+        {
+            public char character { get; set; }
+            public string desc { get; set; }
+
+            public SpecialsModel(char character, string desc)
+            {
+                this.character = character;
+                this.desc = desc;
+            }
+        }
+        //Special characters list 
+        Dictionary<char, string> specials = new Dictionary<char, string>()
+            {
+                {' ' , "White space"},
                 { '@', "At sign"},
-                {'"', "Double quote" },
+                {'"', "Double quote"},
                 {'\\', "Backslash"},
                 {'#', "Hashtag"},
                 {'$', "Dollar Sign"},
@@ -94,90 +134,79 @@ namespace PasswordGeneratorCore
                 {'|', "Vertical bar"},
                 {'~', "Tilde"}
             };
+        //List<char> s = new List<char> { };
+        public MainWindow()
+        {
+            InitializeComponent();
+            //((INotifyCollectionChanged)lvSpecials.ItemsSource).CollectionChanged += new NotifyCollectionChangedEventHandler(lvChange);
+            try
+            {
+                using (var db = new AccountsDbContext())
+                {
+                    data.ItemsSource = db.Passwords.ToList();
+                }
+                //int rowi = data.Items.IndexOf(data.Items.Count - 1);
+                //DataGridRow row = (DataGridRow)data.Items[3];
+                //row.Background = new SolidColorBrush(Color.FromRgb(255, 0, 0));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Connection Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            
+            //CheckBox all = new CheckBox();
+            all.Content = "All";
+            all.IsChecked = true;
+
+            all.Checked += new RoutedEventHandler(CheckAll);
+            all.Unchecked += new RoutedEventHandler(UncheckAll);
+
             //Create the checkboxes for the specials list
             foreach (var c in specials)
             {
-                //// Checkbox
-                /// A local checkbox for ever char in list
-                /// 
-                //CheckBox checkBox = new CheckBox();
-                CheckBox checkBox = new CheckBox();
-                checkBox.HorizontalAlignment = HorizontalAlignment.Left;
-                //Had to add a condition here because of the RecgonizeAccessKey problem
-                if (c.Key == '_')
-                {
-                    checkBox.Content = "__" + "\t" + c.Value;
-                }
-                else
-                {
-                    checkBox.Content = c.Key + "\t" + c.Value;
-                }
+                ListViewItem item = new ListViewItem();
 
-                //Set all checkboxes to checkedm
-                checkBox.IsChecked = true;
+                item.Content = c.Key + "\t" + c.Value;
+                item.IsSelected = true;
 
-                specialsMenuItem.Items.Add(checkBox);
-
-                //Event handler for checked and unchecked
-                checkBox.Checked += new RoutedEventHandler(checkBoxChecked);
-                checkBox.Unchecked += new RoutedEventHandler(checkBoxUnChecked);
-
-                //Add special characters to list
                 chars.Add(c.Key);
+                cbList.Add(item);
             }
-
-            //labelChars.Content = string.Join("", chars.ToArray());
-            //Checkbox checked event
-            void checkBoxChecked(object sender, RoutedEventArgs e)
+            lvSpecials.ItemsSource = cbList;
+        }
+        private void CheckAll(object sender, RoutedEventArgs e)
+        {
+            foreach (var c in cbList)
             {
-                CheckBox ch = sender as CheckBox;
-                chars.Add(ch.Content.ToString()[0]);
-            }
-            //Checkbox unchecked event
-            void checkBoxUnChecked(object sender, RoutedEventArgs e)
-            {
-                CheckBox ch = sender as CheckBox;
-                chars.Remove(ch.Content.ToString()[0]);
-            }
-
-            using (var db = new AccountsDbContext())
-            {
-                data.ItemsSource = db.Passwords.ToList();
+                c.IsSelected = true;
             }
         }
+        private void UncheckAll(object sender, RoutedEventArgs e)
+        {
+            foreach (var c in cbList)
+            {
+                c.IsSelected = false;
+            }
+        }
+        private void lvChange(object sender, RoutedEventArgs e)
+        {
+            ListViewItem item = sender as ListViewItem;
 
+            chars.Clear();
+            StringBuilder str = new StringBuilder();
+            foreach (ListViewItem lvi in lvSpecials.SelectedItems)
+            {
+                //chars.Add(lvi.Content.ToString()[0]);
+                str.Append(lvi.Content.ToString()[0]);
+            }
+            chars = str.ToString().ToList();
+        }
         public void Refresh_Click(object sender, RoutedEventArgs e)
         {
             using (var db = new AccountsDbContext())
             {
                 data.ItemsSource = db.Passwords.ToList();
             }
-        }
-
-        private void Delete_Click(object sender, RoutedEventArgs e)
-        {
-            using (var db = new AccountsDbContext())
-            {
-                db.Passwords.Remove((AccountModel)data.SelectedValue);
-                db.SaveChanges();
-
-                data.ItemsSource = db.Passwords.ToList();
-            }
-        }
-        private void Delete_Down(object sender, MouseButtonEventArgs e)
-        {
-            Button b = sender as Button;
-            //b.Background = new SolidColorBrush(Color.FromArgb(71, 57, 74, 29));
-        }
-        private void Delete_Over(object sender, MouseEventArgs e)
-        {
-            Button b = sender as Button;
-            //b.Background = new SolidColorBrush(Color.FromArgb(74, 60, 57, 29));
-        }
-        private void Delete_Out(object sender, MouseEventArgs e)
-        {
-            Button b = sender as Button;
-            //b.Background = new SolidColorBrush(Color.FromArgb(61, 50, 54, 24));
         }
         private bool IsNumber(string Text)
         {
@@ -192,35 +221,50 @@ namespace PasswordGeneratorCore
             }
         }
 
-        private void Save_Click(object sender, RoutedEventArgs e)
+        private void Save_Click(object sender, MouseEventArgs e)
         {
-            Button b = sender as Button;
-            b.Background = new SolidColorBrush(Color.FromArgb(255, 153, 153, 153));
-
             using (var db = new AccountsDbContext())
             {
-                db.Passwords.Update((AccountModel)data.SelectedValue);
-                db.SaveChanges();
-
+                try
+                {
+                    AccountModel acc = (AccountModel)data.Items[rowIndex];
+                    //acc.Id = indexDb;
+                    //acc.Notes = notes; 
+                    //acc.Website = website;
+                    //acc.Password = password;
+                    db.Passwords.Update(acc);
+                    //db.Entry(acc).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                    db.SaveChanges();
+                }
+                catch(Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                    //db.Passwords.Add(new AccountModel());
+                }
+                
                 data.ItemsSource = db.Passwords.ToList();
             }
         }
-        private void Save_Down(object sender, MouseButtonEventArgs e)
+        //private DataRowView being = null;
+        private void cellChange(object sender, TextCompositionEventArgs e)
         {
-            Button b = sender as Button;
-            b.Background = new SolidColorBrush(Color.FromArgb(255, 153, 153, 153));
-        }
-        private void Save_Over(object sender, MouseEventArgs e)
-        {
-            Button b = sender as Button;
-            b.Background = new SolidColorBrush(Color.FromArgb(255, 85, 85, 85));
-        }
-        private void Save_Out(object sender, MouseEventArgs e)
-        {
-            Button b = sender as Button;
-            b.Background = new SolidColorBrush(Color.FromArgb(255, 23, 23, 255));
-        }
+            //DataRowView row = e.Row.Item as DataRowView;
 
+            //AccountModel acc = (AccountModel)row.ite;
+            //website = acc.Website;
+            //being = row;
+            //TextBox b = sender as TextBox;
+            //row.EndEdit();
+
+            //AccountModel acc = (AccountModel)e.Text
+            lblWebsite.Content = e.Text;
+            //website = e.Column.ToString();
+        }
+        //private void test(object sender, TextChangedEventArgs e)
+        //{
+        //    TextBox b = sender as TextBox;
+        //    lblWebsite.Content = e.Source;
+        //}
         private void w_MouseDown(object sender, MouseButtonEventArgs e)
         {
             this.DragMove();
@@ -235,33 +279,28 @@ namespace PasswordGeneratorCore
         }
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            //Generate password
-            String generatePassword()
-            {
-                StringBuilder p = new StringBuilder();
-
-                var rand = new Random();
-
-                for (int i = 0; i <= int.Parse(passLenTxt.Text) - 1; i++)
-                {
-                    int index = rand.Next(chars.Count);
-                    p.Append(chars[index]);
-                }
-
-                //Recurse generatePassword() until password is strong/valid
-                Regex r = new Regex(@"(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[ !\""#$%&'()*+,\-./:;<=>?@\[\]^_`{|}~])");
-                if (r.IsMatch(p.ToString()))
-                    return p.ToString();
-                else
-                {
-                    return generatePassword();
-                }
-            }
+            btnDown(sender, (MouseEventArgs)e);
+            //chars.Clear();
             using (var db = new AccountsDbContext())
             {
-                var a = (AccountModel)data.SelectedValue;
-                a.Password = generatePassword();
-                db.Passwords.Update(a);
+                try
+                {
+                    AccountModel acc = (AccountModel)data.Items[rowIndex];
+                    acc.Password = generatePassword();
+                    db.Passwords.Update(acc);
+                }
+                catch(Exception ex)
+                {
+                    AccountModel acc = new AccountModel()
+                    {
+                        Notes = "",
+                        Website = "",
+                        Password = generatePassword()
+                    };
+                    db.Passwords.Update(acc);
+                    db.SaveChanges();
+                }
+                data.ItemsSource = db.Passwords.ToList();
             }
         }
         private void searchText_Changed(object sender, TextChangedEventArgs e)
@@ -272,6 +311,108 @@ namespace PasswordGeneratorCore
                 data.ItemsSource = db.Passwords.Where(w => w.Website.ToLower().Contains(search.Text.ToLower())).ToList();
             }
         }
+        private void btnSaveLeave(object sender, MouseEventArgs e)
+        {
+            var bc = new BrushConverter();
+            TextBlock btn = e.Source as TextBlock;
+            btn.Background = (Brush)bc.ConvertFrom("#2F3D2F");
+        }
+        private void btnGenLeave(object sender, MouseEventArgs e)
+        {
+            var bc = new BrushConverter();
+            TextBlock btn = e.Source as TextBlock;
+            btn.Background = (Brush)bc.ConvertFrom("#3D382C");
+        }
+        private void btnEnter(object sender, MouseEventArgs e)
+        {
+            var bc = new BrushConverter();
+            TextBlock btn = e.Source as TextBlock;
+            btn.Background = (Brush)bc.ConvertFrom("#6E6596");
+        }
+        private void btnDown(object sender, MouseEventArgs e)
+        {
+            var bc = new BrushConverter();
+            TextBlock btn = sender as TextBlock;
+            btn.Background = (Brush)bc.ConvertFrom("#868396");
+        }
+        private void btnUp(object sender, MouseEventArgs e)
+        {
+            var bc = new BrushConverter();
+            TextBlock btn = sender as TextBlock;
+            btn.Background = (Brush)bc.ConvertFrom("#6E6596");
+        }
+        private void btnCopyLeave(object sender, MouseEventArgs e)
+        {
+            var bc = new BrushConverter();
+            TextBlock btn = e.Source as TextBlock;
+            btn.Background = (Brush)bc.ConvertFrom("#2C323D");
+        }
+        private void btnDeleteLeave(object sender, MouseEventArgs e)
+        {
+            var bc = new BrushConverter();
+            TextBlock btn = e.Source as TextBlock;
+            btn.Background = (Brush)bc.ConvertFrom("#3D2C35");
+        }
+        private void CopyToClipboard(object sender, RoutedEventArgs e)
+        {
+            btnDown(sender, (MouseEventArgs)e);
+            using (var db = new AccountsDbContext())
+            {
+                try
+                {
+                    var s = (AccountModel)data.Items[rowIndex];
+                    Clipboard.SetText(s.Password);
+                }
+                catch(Exception ex)
+                {
+                    Clipboard.SetText("");
+                }
+            }
+        }
+        private void DeleteAccount(object sender, RoutedEventArgs e)
+        {
+            btnDown(sender, (MouseEventArgs)e);
+            try
+            {
+                MessageBoxResult res = MessageBox.Show("Are you sure you want to delete Id " + ((AccountModel)data.Items[rowIndex]).Id, "Deleting Account", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+                if (res == MessageBoxResult.Yes)
+                {
+                    using (var db = new AccountsDbContext())
+                    {
+                        var s = (AccountModel)data.Items[rowIndex];
+                        db.Passwords.Remove(s);
+                        db.SaveChanges();
 
+                        data.ItemsSource = db.Passwords.ToList();
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Error: account does not exist in database", "Account Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+        private void rowEnter(object sender, MouseEventArgs e)
+        {
+            var row = e.Source as DataGridRow;
+            rowIndex = row.GetIndex();
+
+            Label lbl = (Label)selectID;
+            try
+            {
+                AccountModel acc = (AccountModel)data.Items[rowIndex];
+                indexDb = acc.Id;
+                website = acc.Website;
+                notes = acc.Notes;
+                password = acc.Password;
+
+                lbl.Content = "ID: " + indexDb;
+            }
+            catch
+            {
+                lbl.Content = "ID: ";
+            }
+            
+        }
     }
 }

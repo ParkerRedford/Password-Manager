@@ -19,7 +19,7 @@ namespace PasswordGeneratorCore
         protected override void OnConfiguring(DbContextOptionsBuilder ob)
         {
             base.OnConfiguring(ob);
-            ob.UseSqlServer("Server=.;Database=db;Trusted_Connection=True;MultipleActiveResultSets=true");
+            ob.UseSqlServer("Data Source=.;Initial Catalog=db;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;MultiSubnetFailover=False");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
