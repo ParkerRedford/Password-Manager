@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlServer;
-using PasswordGeneratorCore.Models;
+using PasswordManager.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace PasswordGeneratorCore
+namespace PasswordManager
 {
     public class AccountsDbContext : DbContext
     {
